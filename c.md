@@ -506,5 +506,437 @@ struct Person {
 struct Person person = {"John", 30};
 printf("Name: %s\n", person.name);  // Member access operator
 
-struct Person* p_ptr = &person
+struct Person* p_ptr = &person;
+printf("Age: %d\n", p_ptr->age);  // Arrow operator for pointers to structures
+```
 
+### Practice Exercise: Basic Syntax and Data Types
+
+1. Write a program that declares variables of each basic data type and prints their sizes
+2. Create a program that demonstrates all arithmetic operations on integers and floating-point numbers
+3. Implement a temperature converter program (Celsius to Fahrenheit and vice versa)
+4. Write a program that demonstrates bitwise operations with clear output explaining each step
+
+## Control Flow
+
+### Conditional Statements
+
+#### if-else Statement
+
+```c
+int age = 20;
+
+// Simple if
+if (age >= 18) {
+    printf("You are an adult.\n");
+}
+
+// if-else
+if (age >= 18) {
+    printf("You are an adult.\n");
+} else {
+    printf("You are a minor.\n");
+}
+
+// if-else if-else
+if (age < 13) {
+    printf("You are a child.\n");
+} else if (age < 18) {
+    printf("You are a teenager.\n");
+} else if (age < 65) {
+    printf("You are an adult.\n");
+} else {
+    printf("You are a senior citizen.\n");
+}
+
+// Nested if
+if (age >= 18) {
+    if (age < 21) {
+        printf("You are an adult, but cannot drink in the US.\n");
+    } else {
+        printf("You are an adult and can drink in the US.\n");
+    }
+}
+```
+
+#### switch Statement
+
+```c
+int day = 3;
+
+switch (day) {
+    case 1:
+        printf("Monday\n");
+        break;
+    case 2:
+        printf("Tuesday\n");
+        break;
+    case 3:
+        printf("Wednesday\n");
+        break;
+    case 4:
+        printf("Thursday\n");
+        break;
+    case 5:
+        printf("Friday\n");
+        break;
+    case 6:
+        printf("Saturday\n");
+        break;
+    case 7:
+        printf("Sunday\n");
+        break;
+    default:
+        printf("Invalid day\n");
+        break;
+}
+
+// Without break (fall-through)
+int grade = 'B';
+
+switch (grade) {
+    case 'A':
+        printf("Excellent!\n");
+        break;
+    case 'B':
+    case 'C':
+        printf("Well done!\n");
+        break;
+    case 'D':
+        printf("You passed.\n");
+        break;
+    case 'F':
+        printf("Better try again.\n");
+        break;
+    default:
+        printf("Invalid grade.\n");
+}
+```
+
+#### Conditional Expressions
+
+```c
+// Ternary operator
+int age = 20;
+char* status = (age >= 18) ? "adult" : "minor";
+printf("You are a %s.\n", status);
+
+// Nested ternary
+int x = 10;
+char* sign = (x > 0) ? "positive" : (x < 0) ? "negative" : "zero";
+printf("The number is %s.\n", sign);
+```
+
+### Loops
+
+#### for Loop
+
+```c
+// Basic for loop
+for (int i = 0; i < 5; i++) {
+    printf("%d ", i);  // Prints: 0 1 2 3 4
+}
+
+// Multiple variables in for loop
+for (int i = 0, j = 10; i < j; i++, j--) {
+    printf("i = %d, j = %d\n", i, j);
+}
+
+// Omitting sections
+int k = 0;
+for (; k < 5; k++) {  // Initialization omitted
+    printf("%d ", k);
+}
+
+// Infinite loop
+// for (;;) {
+//     printf("This will run forever.\n");
+// }
+```
+
+#### while Loop
+
+```c
+// Basic while loop
+int i = 0;
+while (i < 5) {
+    printf("%d ", i);  // Prints: 0 1 2 3 4
+    i++;
+}
+
+// Sentinel-controlled loop
+char input;
+printf("Enter 'q' to quit: ");
+scanf(" %c", &input);
+
+while (input != 'q') {
+    printf("You entered: %c\n", input);
+    printf("Enter 'q' to quit: ");
+    scanf(" %c", &input);
+}
+```
+
+#### do-while Loop
+
+```c
+// Basic do-while loop (executes at least once)
+int i = 0;
+do {
+    printf("%d ", i);  // Prints: 0 1 2 3 4
+    i++;
+} while (i < 5);
+
+// Input validation
+int number;
+do {
+    printf("Enter a positive number: ");
+    scanf("%d", &number);
+} while (number <= 0);
+
+printf("You entered: %d\n", number);
+```
+
+### Jump Statements
+
+```c
+// break
+for (int i = 0; i < 10; i++) {
+    if (i == 5) {
+        break;  // Exit the loop when i reaches 5
+    }
+    printf("%d ", i);  // Prints: 0 1 2 3 4
+}
+
+// continue
+for (int i = 0; i < 10; i++) {
+    if (i % 2 == 0) {
+        continue;  // Skip even numbers
+    }
+    printf("%d ", i);  // Prints: 1 3 5 7 9
+}
+
+// goto (use sparingly)
+int j = 0;
+
+start:
+printf("%d ", j);
+j++;
+
+if (j < 5) {
+    goto start;  // Jump back to the 'start' label
+}
+
+// return (covered in Functions section)
+```
+
+### Practice Exercise: Control Flow
+
+1. Write a program that determines if a year is a leap year using if-else statements
+2. Create a simple calculator program using switch statements for different operations
+3. Implement a program to print the first 10 Fibonacci numbers using a loop
+4. Write a program that uses nested loops to print a pattern (e.g., a triangle of asterisks)
+5. Create a guessing game where the user tries to guess a random number, with hints provided
+
+## Functions and Program Structure
+
+### Function Declaration and Definition
+
+```c
+// Function prototype (declaration)
+int add(int a, int b);
+void printMessage(const char* message);
+
+int main() {
+    int result = add(5, 3);
+    printf("Result: %d\n", result);
+    
+    printMessage("Hello, functions!");
+    
+    return 0;
+}
+
+// Function definition
+int add(int a, int b) {
+    return a + b;
+}
+
+void printMessage(const char* message) {
+    printf("%s\n", message);
+    // No return value for void functions
+}
+```
+
+### Function Parameters
+
+```c
+// Pass by value
+void incrementByValue(int x) {
+    x++;  // Modifies the local copy, not the original
+    printf("Inside function: %d\n", x);
+}
+
+// Pass by reference (using pointers)
+void incrementByReference(int* x) {
+    (*x)++;  // Modifies the original variable
+    printf("Inside function: %d\n", *x);
+}
+
+int main() {
+    int num = 10;
+    
+    incrementByValue(num);
+    printf("After incrementByValue: %d\n", num);  // Still 10
+    
+    incrementByReference(&num);
+    printf("After incrementByReference: %d\n", num);  // Now 11
+    
+    return 0;
+}
+```
+
+### Function Return Values
+
+```c
+// Returning different data types
+int getInteger() {
+    return 42;
+}
+
+double getDouble() {
+    return 3.14159;
+}
+
+char* getString() {
+    return "Hello, world!";  // Returns a pointer to a string literal
+}
+
+// Multiple return values using pointers
+void getMinMax(int arr[], int size, int* min, int* max) {
+    if (size <= 0) return;
+    
+    *min = *max = arr[0];
+    
+    for (int i = 1; i < size; i++) {
+        if (arr[i] < *min) *min = arr[i];
+        if (arr[i] > *max) *max = arr[i];
+    }
+}
+
+int main() {
+    int numbers[] = {5, 3, 8, 1, 9, 4};
+    int min, max;
+    
+    getMinMax(numbers, 6, &min, &max);
+    printf("Min: %d, Max: %d\n", min, max);
+    
+    return 0;
+}
+```
+
+### Variable Scope
+
+```c
+// Global variables
+int globalVar = 100;  // Accessible throughout the program
+
+void function1() {
+    printf("Global variable in function1: %d\n", globalVar);
+    globalVar++;  // Modifies the global variable
+}
+
+void function2() {
+    // Local variable with the same name shadows the global variable
+    int globalVar = 50;
+    printf("Local variable in function2: %d\n", globalVar);
+    
+    // Access the global variable using the scope resolution operator
+    printf("Global variable in function2: %d\n", ::globalVar);  // This syntax is C++, not valid in C
+}
+
+int main() {
+    // Local variables
+    int localVar = 10;  // Only accessible within main
+    
+    {
+        // Block scope
+        int blockVar = 20;  // Only accessible within this block
+        printf("Block variable: %d\n", blockVar);
+    }
+    
+    // printf("Block variable: %d\n", blockVar);  // Error: blockVar out of scope
+    
+    function1();
+    function2();
+    
+    return 0;
+}
+```
+
+### Static Variables
+
+```c
+void counter() {
+    static int count = 0;  // Initialized only once
+    count++;
+    printf("Count: %d\n", count);
+}
+
+int main() {
+    counter();  // Count: 1
+    counter();  // Count: 2
+    counter();  // Count: 3
+    
+    return 0;
+}
+```
+
+### Recursive Functions
+
+```c
+// Factorial calculation using recursion
+int factorial(int n) {
+    if (n <= 1) {
+        return 1;  // Base case
+    }
+    return n * factorial(n - 1);  // Recursive case
+}
+
+// Fibonacci numbers using recursion
+int fibonacci(int n) {
+    if (n <= 1) {
+        return n;  // Base case
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);  // Recursive case
+}
+
+int main() {
+    printf("Factorial of 5: %d\n", factorial(5));  // 120
+    printf("Fibonacci(7): %d\n", fibonacci(7));    // 13
+    
+    return 0;
+}
+```
+
+### Function Pointers
+
+```c
+// Function pointer declaration and usage
+int add(int a, int b) {
+    return a + b;
+}
+
+int subtract(int a, int b) {
+    return a - b;
+}
+
+int operation(int x, int y, int (*func)(int, int)) {
+    return func(x, y);
+}
+
+int main() {
+    // Declare a function pointer
+    int (*ptr)(int, int);
+    
+    // Assign function address to pointer
+    ptr = add;
+    printf("Result of add via pointer: %d\n",
