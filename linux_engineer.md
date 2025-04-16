@@ -1609,27 +1609,9 @@ myfunc() {
 
 # Usage
 myfunc "World"  # Outputs: Hello, World!
-
-# Function with multiple commands
-extract() {
-    if [ -f "$1" ] ; then
-        case "$1" in
-            *.tar.bz2)   tar xjf "$1"     ;;
-            *.tar.gz)    tar xzf "$1"     ;;
-            *.bz2)       bunzip2 "$1"     ;;
-            *.rar)       unrar e "$1"     ;;
-            *.gz)        gunzip "$1"      ;;
-            *.tar)       tar xf "$1"      ;;
-            *.zip)       unzip "$1"       ;;
-            *)           echo "Cannot extract '$1'" ;;
-        esac
-    else
-        echo "'$1' is not a valid file"
-    fi
-}
-
-# Make functions permanent by adding to ~/.bashrc
 ```
+
+We'll cover more advanced function usage in the Shell Scripting section.
 
 ### Job Control
 
@@ -1812,6 +1794,14 @@ sudo apt install inotify-tools
 inotifywait -m /path/to/monitor
 ```
 
+### Exercise: Process Management
+
+1. Monitor system processes using `top` and `htop`
+2. Find specific processes using `ps` and `pgrep`
+3. Experiment with process priorities using `nice` and `renice`
+4. Practice killing processes using different signals
+5. Track resource usage of a specific application
+
 ### Cron Jobs and Scheduled Tasks
 
 Cron allows you to schedule commands to run at specific times:
@@ -1890,14 +1880,13 @@ sudo systemctl start myscript.timer
 systemctl list-timers
 ```
 
-### Exercise: Process Management
+### Exercise: Scheduled Tasks
 
-1. Monitor system processes using `top` and `htop`
-2. Find specific processes using `ps` and `pgrep`
-3. Experiment with process priorities using `nice` and `renice`
-4. Set up cron jobs to run commands at scheduled times
-5. Practice killing processes using different signals
-
+1. Create a cron job to run a backup script daily at 2 AM
+2. Set up a systemd timer to execute a maintenance task weekly
+3. Monitor scheduled jobs with `systemctl list-timers`
+4. Create a script that runs different commands depending on the time of day
+5. Implement a job that logs system performance metrics hourly
 ## System Administration Tasks
 
 This section covers common administration tasks for managing Linux systems.
@@ -3273,4 +3262,287 @@ nano inventory.ini
 
 Example inventory file:
 ```ini
-3
+[web_servers]
+web1 ansible_host=192.168.1.11
+web2 ansible_host=192.168.1.12
+
+[db_servers]
+db1 ansible_host=192.168.1.21
+
+[all:vars]
+ansible_user=admin
+```
+
+Create a simple playbook:
+```yaml
+---
+# simple_playbook.yml
+- name: Update web servers
+  hosts: web_servers
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        
+    - name: Ensure nginx is installed
+      apt:
+        name: nginx
+        state: present
+        
+    - name: Start and enable nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+```
+
+```bash
+# Run the playbook
+ansible-playbook -i inventory.ini simple_playbook.yml
+```
+
+#### Terraform
+
+```bash
+# Install Terraform
+wget https://releases.hashicorp.com/terraform/1.0.11/terraform_1.0.11_linux_amd64.zip
+unzip terraform_1.0.11_linux_amd64.zip
+sudo mv terraform /usr/local/bin/
+```
+
+Create a Terraform configuration file:
+```hcl
+# main.tf
+provider "aws" {
+  region = "us-west-2"
+}
+
+resource "aws_instance" "web_server" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "t2.micro"
+  tags = {
+    Name = "Web Server"
+  }
+}
+```
+
+```bash
+# Initialize Terraform
+terraform init
+
+# Preview changes
+terraform plan
+
+# Apply changes
+terraform apply
+```
+
+### Cloud Platform Integration
+
+#### AWS CLI
+
+```bash
+# Install AWS CLI
+sudo apt install awscli  # Debian/Ubuntu
+sudo dnf install awscli  # Fedora/RHEL
+
+# Configure AWS CLI
+aws configure
+
+# List EC2 instances
+aws ec2 describe-instances
+
+# Create an S3 bucket
+aws s3 mb s3://my-bucket-name
+
+# Upload a file to S3
+aws s3 cp myfile.txt s3://my-bucket-name/
+```
+
+#### Google Cloud SDK
+
+```bash
+# Install Google Cloud SDK
+curl https://sdk.cloud.google.com | bash
+exec -l $SHELL
+gcloud init
+
+# List compute instances
+gcloud compute instances list
+
+# Create a VM instance
+gcloud compute instances create my-instance --zone=us-central1-a --machine-type=e2-medium
+```
+
+### Continuous Integration/Continuous Deployment (CI/CD)
+
+#### Jenkins
+
+```bash
+# Install Jenkins
+wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+sudo apt update
+sudo apt install jenkins
+```
+
+Example Jenkins pipeline (Jenkinsfile):
+```groovy
+pipeline {
+    agent any
+    
+    stages {
+        stage('Build') {
+            steps {
+                sh 'echo "Building..."'
+                sh 'make build'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'echo "Testing..."'
+                sh 'make test'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'echo "Deploying..."'
+                sh 'make deploy'
+            }
+        }
+    }
+}
+```
+
+#### GitLab CI/CD
+
+Example `.gitlab-ci.yml`:
+```yaml
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  script:
+    - echo "Building..."
+    - make build
+  artifacts:
+    paths:
+      - build/
+
+test:
+  stage: test
+  script:
+    - echo "Testing..."
+    - make test
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying..."
+    - make deploy
+  only:
+    - main
+```
+
+### Advanced Shell Scripting
+
+#### Advanced Function Techniques
+
+```bash
+# Function with error handling
+extract() {
+    if [ -f "$1" ] ; then
+        case "$1" in
+            *.tar.bz2)   tar xjf "$1"     ;;
+            *.tar.gz)    tar xzf "$1"     ;;
+            *.bz2)       bunzip2 "$1"     ;;
+            *.rar)       unrar e "$1"     ;;
+            *.gz)        gunzip "$1"      ;;
+            *.tar)       tar xf "$1"      ;;
+            *.zip)       unzip "$1"       ;;
+            *)           echo "Cannot extract '$1'" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+        return 1
+    fi
+}
+
+# Function with local variables
+calculate_sum() {
+    local num1=$1
+    local num2=$2
+    local sum=$((num1 + num2))
+    echo $sum
+}
+
+# Function with return value
+is_even() {
+    if (( $1 % 2 == 0 )); then
+        return 0  # True in bash
+    else
+        return 1  # False in bash
+    fi
+}
+
+# Using the function with conditional
+if is_even 4; then
+    echo "4 is even"
+else
+    echo "4 is odd"
+fi
+```
+
+#### Script Options and Arguments
+
+```bash
+#!/bin/bash
+
+# Script to demonstrate options and arguments
+
+# Default values
+verbose=false
+output_file=""
+
+# Parse options
+while getopts ":hvo:" opt; do
+  case $opt in
+    h)
+      echo "Usage: $0 [-h] [-v] [-o output_file] [arguments]"
+      echo "  -h: Display this help"
+      echo "  -v: Enable verbose mode"
+      echo "  -o: Specify output file"
+      exit 0
+      ;;
+    v)
+      verbose=true
+      ;;
+    o)
+      output_file=$OPTARG
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+# Shift to access remaining arguments
+shift $((OPTIND-1))
+
+# Process remaining arguments
+if [ "$verbose" = true ]; then
+  echo "Verbose mode enabled"
+  echo "Output file: $output_file"
+  echo "Remaining arguments: $@"
+fi
+
+# Loop through remaining arguments
