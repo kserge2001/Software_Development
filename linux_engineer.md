@@ -1266,3 +1266,402 @@ vim filename.txt
   - `:q!`: Quit without saving
 
 - **Insert mode**:
+  - Type to insert text
+  - Arrow keys to navigate
+  - `Esc` to return to command mode
+
+- **Visual mode**:
+  - `v`: Enter visual mode for character selection
+  - `V`: Enter visual line mode
+  - Use movement keys to select text
+
+**Basic vim commands:**
+```
+# Navigation
+h, j, k, l    # Move cursor left, down, up, right
+w             # Move to start of next word
+b             # Move to start of previous word
+0             # Move to start of line
+$             # Move to end of line
+gg            # Move to first line of file
+G             # Move to last line of file
+
+# Editing
+i             # Insert before cursor
+a             # Append after cursor
+o             # Open new line below
+O             # Open new line above
+x             # Delete character under cursor
+dd            # Delete current line
+yy            # Copy (yank) current line
+p             # Paste after cursor
+u             # Undo
+Ctrl+r        # Redo
+
+# Searching
+/pattern       # Search forward for pattern
+?pattern       # Search backward for pattern
+n              # Find next occurrence
+N              # Find previous occurrence
+
+# Saving/Quitting
+:w             # Save
+:q             # Quit (if no changes)
+:wq or ZZ      # Save and quit
+:q!            # Quit without saving
+```
+
+#### emacs
+
+Another powerful editor with extensive features:
+
+```bash
+# Open a file
+emacs filename.txt
+```
+
+**Basic emacs commands:**
+- **Ctrl+x Ctrl+s**: Save file
+- **Ctrl+x Ctrl+c**: Exit
+- **Ctrl+g**: Cancel current command
+- **Ctrl+k**: Kill (cut) line
+- **Ctrl+y**: Yank (paste) line
+- **Ctrl+s**: Search forward
+- **Ctrl+r**: Search backward
+
+### Command-Line Text Processing
+
+#### grep - Search for patterns in files
+
+```bash
+# Search for a pattern in a file
+grep "pattern" filename
+
+# Case-insensitive search
+grep -i "pattern" filename
+
+# Recursive search in directory
+grep -r "pattern" directory/
+
+# Show line numbers
+grep -n "pattern" filename
+
+# Show only filenames with matches
+grep -l "pattern" *
+
+# Invert match (show lines that don't match)
+grep -v "pattern" filename
+```
+
+#### sed - Stream editor for filtering and transforming text
+
+```bash
+# Replace first occurrence on each line
+sed 's/old/new/' filename
+
+# Replace all occurrences on each line
+sed 's/old/new/g' filename
+
+# Replace on specific lines (e.g., line 3)
+sed '3s/old/new/' filename
+
+# Delete lines
+sed '5d' filename      # Delete line 5
+sed '/pattern/d' filename  # Delete lines matching pattern
+
+# Edit file in-place (save changes)
+sed -i 's/old/new/g' filename
+```
+
+#### awk - Powerful text processing language
+
+```bash
+# Print specific columns (fields)
+awk '{print $1, $3}' filename  # Print 1st and 3rd fields
+
+# Filter lines based on condition
+awk '$3 > 50 {print $0}' filename  # Print lines where 3rd field > 50
+
+# Use custom field separator
+awk -F: '{print $1, $7}' /etc/passwd  # Print username and shell
+
+# Calculate sum
+awk '{sum += $1} END {print "Sum:", sum}' filename
+```
+
+#### cut - Extract sections from lines of files
+
+```bash
+# Extract characters by position
+cut -c 1-5 filename  # Extract first 5 characters
+
+# Extract fields by delimiter
+cut -d":" -f1,7 /etc/passwd  # Extract 1st and 7th fields
+```
+
+#### sort - Sort lines of text files
+
+```bash
+# Sort alphabetically
+sort filename
+
+# Sort numerically
+sort -n filename
+
+# Sort in reverse
+sort -r filename
+
+# Sort by specific field
+sort -k2 filename  # Sort by 2nd field
+```
+
+#### uniq - Report or filter out repeated lines
+
+```bash
+# Remove duplicate lines (input must be sorted)
+sort filename | uniq
+
+# Count occurrences of lines
+sort filename | uniq -c
+
+# Show only duplicate lines
+sort filename | uniq -d
+```
+
+### Exercise: Text Editing
+
+1. Open, edit, and save a file using nano
+2. Learn basic vim commands:
+   - Create a new file
+   - Insert text
+   - Save and exit
+   - Search and replace text
+3. Practice text processing:
+   - Use grep to find patterns in log files
+   - Use sed to replace text in configuration files
+   - Use awk to extract and process data from CSV files
+
+## 🚀 Intermediate Linux Skills
+
+This section covers more advanced topics for Linux system administration.
+
+## Advanced Command Line Usage
+
+### Redirection and Pipes
+
+#### Input/Output Redirection
+
+```bash
+# Redirect output to a file (overwrite)
+command > output.txt
+
+# Redirect output to a file (append)
+command >> output.txt
+
+# Redirect error output to a file
+command 2> error.txt
+
+# Redirect both standard output and error
+command > output.txt 2>&1
+# Modern syntax
+command &> output.txt
+
+# Redirect input from a file
+command < input.txt
+
+# Redirect input from a string
+command <<< "string input"
+
+# Here document (multi-line input)
+command << EOF
+line 1
+line 2
+line 3
+EOF
+```
+
+#### Pipes
+
+Pipes connect the output of one command to the input of another:
+
+```bash
+# Chain commands with pipes
+command1 | command2 | command3
+
+# Examples
+cat /var/log/syslog | grep "error" | less
+ls -la | grep "\.txt$" | sort
+ps aux | grep "firefox" | wc -l
+```
+
+### Command Substitution
+
+Execute a command and use its output as part of another command:
+
+```bash
+# Using backticks (older style)
+echo "Current date: `date`"
+
+# Using $() (preferred modern style)
+echo "Current date: $(date)"
+
+# Nested command substitution
+echo "Files in directory $(basename $(pwd)): $(ls | wc -l)"
+```
+
+### Expansion and Globbing
+
+#### Pathname Expansion (Globbing)
+
+```bash
+# Match any string
+ls *.txt          # All .txt files in current directory
+
+# Match a single character
+ls file?.txt      # Matches file1.txt, fileA.txt, etc.
+
+# Match any character in a set
+ls file[123].txt  # Matches file1.txt, file2.txt, file3.txt
+
+# Match any character not in a set
+ls file[!123].txt # Matches any character except 1, 2, 3
+
+# Match a range
+ls file[a-z].txt  # Matches files with lowercase letters
+
+# Extended globbing (bash)
+shopt -s extglob   # Enable extended globbing
+ls !(*.txt)        # All files except .txt files
+```
+
+#### Brace Expansion
+
+```bash
+# Generate sequences
+echo {1..5}        # Outputs: 1 2 3 4 5
+echo {a..e}        # Outputs: a b c d e
+
+# Generate sequences with steps
+echo {1..10..2}    # Outputs: 1 3 5 7 9
+
+# Multiple sets
+echo file{1,3,5}.txt    # Outputs: file1.txt file3.txt file5.txt
+
+# Nested brace expansion
+echo {a,b}{1,2}    # Outputs: a1 a2 b1 b2
+
+# Practical examples
+mkdir -p project/{src,lib,doc}/{main,test}  # Creates directory structure
+cp file.txt{,.bak}  # Copies file.txt to file.txt.bak
+```
+
+### Regular Expressions
+
+Regular expressions (regex) are patterns for matching text:
+
+#### Basic Regex Patterns
+
+- `.` - Match any single character
+- `^` - Match start of line
+- `$` - Match end of line
+- `*` - Match zero or more of the previous character
+- `+` - Match one or more of the previous character (extended regex)
+- `?` - Match zero or one of the previous character (extended regex)
+- `[]` - Match any character inside brackets
+- `[^]` - Match any character not inside brackets
+- `()` - Group patterns (extended regex)
+- `|` - Alternation (OR) (extended regex)
+
+```bash
+# grep with basic regex
+grep "^The" file.txt     # Lines starting with "The"
+grep "end$" file.txt     # Lines ending with "end"
+grep "a..b" file.txt     # "a" followed by any two chars, then "b"
+
+# grep with extended regex
+grep -E "word1|word2" file.txt   # Lines containing word1 or word2
+grep -E "[0-9]+" file.txt        # Lines containing one or more digits
+```
+
+### Aliases and Functions
+
+#### Creating Aliases
+
+```bash
+# Create a temporary alias
+alias ll='ls -la'
+
+# Make aliases permanent by adding to ~/.bashrc
+echo 'alias ll="ls -la"' >> ~/.bashrc
+echo 'alias update="sudo apt update && sudo apt upgrade"' >> ~/.bashrc
+
+# Remove an alias
+unalias ll
+```
+
+#### Creating Shell Functions
+
+```bash
+# Simple function
+myfunc() {
+    echo "Hello, $1!"
+}
+
+# Usage
+myfunc "World"  # Outputs: Hello, World!
+
+# Function with multiple commands
+extract() {
+    if [ -f "$1" ] ; then
+        case "$1" in
+            *.tar.bz2)   tar xjf "$1"     ;;
+            *.tar.gz)    tar xzf "$1"     ;;
+            *.bz2)       bunzip2 "$1"     ;;
+            *.rar)       unrar e "$1"     ;;
+            *.gz)        gunzip "$1"      ;;
+            *.tar)       tar xf "$1"      ;;
+            *.zip)       unzip "$1"       ;;
+            *)           echo "Cannot extract '$1'" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+    fi
+}
+
+# Make functions permanent by adding to ~/.bashrc
+```
+
+### Job Control
+
+#### Managing Background and Foreground Processes
+
+```bash
+# Run a command in the background
+command &
+
+# List current jobs
+jobs
+
+# Bring a background job to the foreground
+fg %job_number
+
+# Send a foreground job to the background
+# First press Ctrl+Z to suspend, then:
+bg %job_number
+
+# Resume a suspended job in the background
+bg
+
+# Kill a job
+kill %job_number
+```
+
+#### Running Commands After Logout
+
+```bash
+# Using nohup
+nohup command &
+
+# Using screen
+screen
+# Then run your command, press Ctrl+A then D to detach
