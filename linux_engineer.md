@@ -1665,3 +1665,453 @@ nohup command &
 # Using screen
 screen
 # Then run your command, press Ctrl+A then D to detach
+
+# Using tmux
+tmux
+# Then run your command, press Ctrl+B then D to detach
+```
+
+### Exercise: Advanced Command Line
+
+1. Experiment with I/O redirection:
+   - Redirect command output to a file
+   - Append to an existing file
+   - Redirect errors to a separate file
+2. Create a pipeline of at least three commands
+3. Use command substitution in a practical scenario
+4. Create useful aliases and functions in your ~/.bashrc
+5. Practice job control:
+   - Run commands in the background
+   - Move between foreground and background
+   - Use screen or tmux for persistent sessions
+
+## Process Management
+
+Understanding how to monitor and control processes is essential for system administration.
+
+### Viewing Running Processes
+
+```bash
+# Display all running processes
+ps aux
+
+# Display processes in a tree format
+ps auxf
+
+# Display processes for a specific user
+ps -u username
+
+# Display processes in real-time
+top
+
+# Interactive process viewer (more user-friendly than top)
+htop  # May need to install: sudo apt install htop
+
+# Show process information by PID
+ps -fp PID
+```
+
+### Process States
+
+Linux processes can be in several states:
+
+- **R (Running)**: Currently running or ready to run
+- **S (Sleeping)**: Waiting for an event to complete
+- **D (Uninterruptible sleep)**: Waiting for I/O operation
+- **T (Stopped)**: Process has been suspended
+- **Z (Zombie)**: Terminated process that still has an entry in the process table
+
+### Process Control
+
+#### Sending Signals to Processes
+
+```bash
+# Terminate a process gracefully (SIGTERM)
+kill PID
+
+# Force terminate a process (SIGKILL)
+kill -9 PID
+# or
+kill -KILL PID
+
+# Pause a process (SIGSTOP)
+kill -STOP PID
+
+# Resume a paused process (SIGCONT)
+kill -CONT PID
+
+# Send HUP signal (often used to reload configuration)
+kill -HUP PID
+
+# List all signals
+kill -l
+```
+
+#### Terminating Processes by Name
+
+```bash
+# Kill all processes with a specific name
+pkill process_name
+
+# Kill processes by pattern
+pkill -f pattern
+
+# Send a specific signal (e.g., SIGKILL)
+pkill -9 process_name
+```
+
+### Process Priorities
+
+The "niceness" value (-20 to 19) determines process priority. Lower values = higher priority.
+
+```bash
+# Start a process with a specific priority
+nice -n 10 command
+
+# Change priority of a running process
+renice +10 -p PID
+
+# Run a process with the highest priority (requires root)
+sudo nice -n -20 command
+```
+
+### Background and Foreground Processes
+
+```bash
+# Run a command in the background
+command &
+
+# Resume a suspended process in the background
+bg %job_number
+
+# Bring a background process to the foreground
+fg %job_number
+
+# Send a foreground process to the background
+# First press Ctrl+Z to suspend, then:
+bg
+```
+
+### Process Monitoring Tools
+
+```bash
+# System and process monitor
+htop
+
+# System monitor with more details
+glances  # sudo apt install glances
+
+# Process visualization
+pstree
+
+# Check process start time and resource usage
+ps -eo pid,user,start_time,cmd,%cpu,%mem
+
+# Monitor file system events
+sudo apt install inotify-tools
+inotifywait -m /path/to/monitor
+```
+
+### Cron Jobs and Scheduled Tasks
+
+Cron allows you to schedule commands to run at specific times:
+
+```bash
+# Edit your user's crontab
+crontab -e
+
+# List your cron jobs
+crontab -l
+```
+
+Crontab format:
+```
+# minute hour day-of-month month day-of-week command
+# * * * * * command (runs every minute)
+# 0 * * * * command (runs every hour at minute 0)
+# 0 0 * * * command (runs at midnight every day)
+# 0 0 * * 0 command (runs at midnight every Sunday)
+```
+
+Examples:
+```
+# Run backup script at 2:30 AM daily
+30 2 * * * /home/user/scripts/backup.sh
+
+# Run system updates every Monday at 3 AM
+0 3 * * 1 apt update && apt upgrade -y
+
+# Run a script every 5 minutes
+*/5 * * * * /path/to/script.sh
+```
+
+#### Systemd Timers (Modern Alternative to Cron)
+
+```bash
+# Create a service unit
+sudo nano /etc/systemd/system/myscript.service
+```
+
+```ini
+[Unit]
+Description=My Service
+
+[Service]
+Type=oneshot
+ExecStart=/path/to/script.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Create a timer unit
+sudo nano /etc/systemd/system/myscript.timer
+```
+
+```ini
+[Unit]
+Description=Run My Service Daily
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+# Enable and start the timer
+sudo systemctl enable myscript.timer
+sudo systemctl start myscript.timer
+
+# List all timers
+systemctl list-timers
+```
+
+### Exercise: Process Management
+
+1. Monitor system processes using `top` and `htop`
+2. Find specific processes using `ps` and `pgrep`
+3. Experiment with process priorities using `nice` and `renice`
+4. Set up cron jobs to run commands at scheduled times
+5. Practice killing processes using different signals
+
+## System Administration Tasks
+
+This section covers common administration tasks for managing Linux systems.
+
+### System Information
+
+```bash
+# Display system and kernel information
+uname -a
+
+# Display Linux distribution information
+cat /etc/os-release
+lsb_release -a
+
+# Display hardware information
+sudo lshw
+
+# Display CPU information
+cat /proc/cpuinfo
+lscpu
+
+# Display memory information
+cat /proc/meminfo
+free -h
+
+# Display disk information
+df -h
+sudo fdisk -l
+lsblk
+
+# Display PCI devices
+lspci
+
+# Display USB devices
+lsusb
+
+# Display block devices
+lsblk
+
+# Show environment variables
+env
+
+# Display loaded kernel modules
+lsmod
+```
+
+### User Management
+
+```bash
+# Add a new user
+sudo adduser username
+
+# Add a user to sudo group
+sudo usermod -aG sudo username
+
+# Switch to another user
+su - username
+
+# Change user password
+sudo passwd username
+
+# Lock/unlock user account
+sudo passwd -l username  # Lock
+sudo passwd -u username  # Unlock
+
+# View user login history
+last
+lastlog
+
+# Remove a user
+sudo deluser username
+sudo deluser --remove-home username  # Also remove home directory
+```
+
+### Service Management
+
+#### Systemd (Modern Linux Systems)
+
+```bash
+# Start a service
+sudo systemctl start service_name
+
+# Stop a service
+sudo systemctl stop service_name
+
+# Restart a service
+sudo systemctl restart service_name
+
+# Reload configuration without restarting
+sudo systemctl reload service_name
+
+# Enable service to start at boot
+sudo systemctl enable service_name
+
+# Disable service from starting at boot
+sudo systemctl disable service_name
+
+# Check service status
+systemctl status service_name
+
+# List all services
+systemctl list-units --type=service
+
+# List all running services
+systemctl list-units --type=service --state=running
+
+# View service logs
+journalctl -u service_name
+
+# Follow service logs in real-time
+journalctl -u service_name -f
+```
+
+#### SysVinit (Older Systems)
+
+```bash
+# Start a service
+sudo service service_name start
+
+# Stop a service
+sudo service service_name stop
+
+# Restart a service
+sudo service service_name restart
+
+# Check service status
+sudo service service_name status
+
+# Enable service to start at boot
+sudo update-rc.d service_name defaults
+
+# Disable service from starting at boot
+sudo update-rc.d service_name disable
+```
+
+### Log Management
+
+#### System Logs
+
+```bash
+# View system messages
+cat /var/log/syslog
+
+# View authentication logs
+sudo cat /var/log/auth.log
+
+# View kernel logs
+sudo dmesg
+
+# Follow logs in real-time
+tail -f /var/log/syslog
+
+# View boot logs (systemd)
+journalctl -b
+
+# View logs for a specific service
+journalctl -u service_name
+
+# Filter logs by time
+journalctl --since "2023-04-15" --until "2023-04-16 03:00"
+journalctl --since "1 hour ago"
+```
+
+#### Log Rotation
+
+Log rotation helps manage log files by archiving and compressing old logs:
+
+```bash
+# Configuration files are in /etc/logrotate.d/
+sudo nano /etc/logrotate.d/custom_logs
+```
+
+Example logrotate configuration:
+```
+/var/log/myapp/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 640 user group
+    postrotate
+        service myapp reload
+    endscript
+}
+```
+
+### Storage Management
+
+#### Disk Partitioning
+
+```bash
+# List disks and partitions
+sudo fdisk -l
+lsblk
+
+# Create partitions using fdisk
+sudo fdisk /dev/sdX
+# Use interactive commands: n (new), p (primary), w (write)
+
+# Format a partition
+sudo mkfs.ext4 /dev/sdX1  # Create ext4 filesystem
+sudo mkfs.xfs /dev/sdX2   # Create XFS filesystem
+```
+
+#### Mounting Filesystems
+
+```bash
+# Create a mount point
+sudo mkdir /mnt/mydisk
+
+# Mount a filesystem
+sudo mount /dev/sdX1 /mnt/mydisk
+
+# Mount with specific options
+sudo mount -o rw,noexec /dev/s
