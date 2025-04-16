@@ -2114,4 +2114,777 @@ sudo mkdir /mnt/mydisk
 sudo mount /dev/sdX1 /mnt/mydisk
 
 # Mount with specific options
-sudo mount -o rw,noexec /dev/s
+sudo mount -o rw,noexec /dev/sdX1 /mnt/mydisk
+
+# Unmount a filesystem
+sudo umount /mnt/mydisk
+
+# Auto-mount at boot (edit /etc/fstab)
+sudo nano /etc/fstab
+```
+
+Example /etc/fstab entry:
+```
+/dev/sdX1 /mnt/mydisk ext4 defaults 0 2
+```
+
+#### Logical Volume Management (LVM)
+
+LVM adds a layer of abstraction between physical disks and filesystems, enabling flexible storage management:
+
+```bash
+# Install LVM tools
+sudo apt install lvm2  # Debian/Ubuntu
+sudo dnf install lvm2  # Fedora/RHEL
+
+# Create physical volumes
+sudo pvcreate /dev/sdX1 /dev/sdY1
+
+# Create a volume group
+sudo vgcreate myvg /dev/sdX1 /dev/sdY1
+
+# Create a logical volume
+sudo lvcreate -n mylv -L 10G myvg
+
+# Format the logical volume
+sudo mkfs.ext4 /dev/myvg/mylv
+
+# Mount the logical volume
+sudo mount /dev/myvg/mylv /mnt/lvm
+
+# Extend a volume group
+sudo vgextend myvg /dev/sdZ1
+
+# Extend a logical volume and resize the filesystem
+sudo lvextend -L +5G /dev/myvg/mylv
+sudo resize2fs /dev/myvg/mylv
+```
+
+#### RAID Configuration
+
+RAID (Redundant Array of Independent Disks) provides redundancy or performance improvements:
+
+```bash
+# Install mdadm tool
+sudo apt install mdadm  # Debian/Ubuntu
+sudo dnf install mdadm  # Fedora/RHEL
+
+# Create a RAID 1 array (mirroring)
+sudo mdadm --create /dev/md0 --level=1 --raid-devices=2 /dev/sdX1 /dev/sdY1
+
+# Create a RAID 5 array (striping with parity)
+sudo mdadm --create /dev/md0 --level=5 --raid-devices=3 /dev/sdX1 /dev/sdY1 /dev/sdZ1
+
+# Check RAID status
+cat /proc/mdstat
+sudo mdadm --detail /dev/md0
+
+# Format and mount the RAID array
+sudo mkfs.ext4 /dev/md0
+sudo mount /dev/md0 /mnt/raid
+
+# Save RAID configuration
+sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
+```
+
+### Exercise: Storage Management
+
+1. Create and format a new partition
+2. Mount the partition and configure it to auto-mount at boot
+3. Set up a basic LVM configuration
+4. Monitor disk usage and identify large files or directories
+5. Create a simple RAID array (if you have multiple disks available)
+
+## Networking Fundamentals
+
+Networking is a critical aspect of Linux administration. This section covers the essentials of Linux networking.
+
+### Network Configuration
+
+#### Viewing Network Information
+
+```bash
+# Show network interfaces
+ip addr
+ifconfig  # Legacy command
+
+# Show routing table
+ip route
+route -n  # Legacy command
+
+# Show DNS configuration
+cat /etc/resolv.conf
+
+# Show hostname and DNS domain
+hostname
+hostname -f  # Fully qualified domain name
+
+# Display all network connections
+netstat -tuln  # Legacy command
+ss -tuln      # Modern command
+
+# Show network statistics
+netstat -s
+ss -s
+```
+
+#### Configuring Network Interfaces
+
+**Temporary Configuration:**
+
+```bash
+# Set IP address
+sudo ip addr add 192.168.1.10/24 dev eth0
+
+# Delete IP address
+sudo ip addr del 192.168.1.10/24 dev eth0
+
+# Set interface up/down
+sudo ip link set eth0 up
+sudo ip link set eth0 down
+
+# Add a route
+sudo ip route add 10.0.0.0/24 via 192.168.1.1
+
+# Add default route
+sudo ip route add default via 192.168.1.1
+```
+
+**Persistent Configuration:**
+
+On Ubuntu/Debian (using Netplan):
+```bash
+# Edit Netplan configuration
+sudo nano /etc/netplan/01-netcfg.yaml
+```
+
+Example Netplan configuration:
+```yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses: [192.168.1.10/24]
+      gateway4: 192.168.1.1
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
+```
+
+```bash
+# Apply Netplan configuration
+sudo netplan apply
+```
+
+On RHEL/CentOS/Fedora:
+```bash
+# Edit network interface configuration
+sudo nano /etc/sysconfig/network-scripts/ifcfg-eth0
+```
+
+Example ifcfg-eth0:
+```
+TYPE=Ethernet
+BOOTPROTO=none
+IPADDR=192.168.1.10
+PREFIX=24
+GATEWAY=192.168.1.1
+DNS1=8.8.8.8
+DNS2=8.8.4.4
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=no
+NAME=eth0
+DEVICE=eth0
+ONBOOT=yes
+```
+
+```bash
+# Apply configuration
+sudo systemctl restart NetworkManager
+```
+
+#### Network Diagnostics
+
+```bash
+# Ping a host
+ping google.com
+
+# Trace route to a host
+traceroute google.com
+mtr google.com  # More detailed traceroute
+
+# DNS lookup
+nslookup google.com
+dig google.com
+host google.com
+
+# Check if a port is open
+telnet host port
+nc -zv host port
+
+# Check network bandwidth
+sudo apt install iperf3  # Install iperf3
+iperf3 -s  # Run as server
+iperf3 -c SERVER_IP  # Run as client
+
+# Check which process is using a port
+sudo lsof -i :80
+sudo netstat -tulpn | grep 80
+sudo ss -tulpn | grep 80
+```
+
+### Firewall Configuration
+
+#### Uncomplicated Firewall (UFW) on Ubuntu/Debian
+
+```bash
+# Install UFW
+sudo apt install ufw
+
+# Check status
+sudo ufw status
+
+# Enable/disable UFW
+sudo ufw enable
+sudo ufw disable
+
+# Allow/deny service by name
+sudo ufw allow ssh
+sudo ufw deny http
+
+# Allow/deny port
+sudo ufw allow 22/tcp
+sudo ufw deny 80/tcp
+
+# Allow from specific IP address
+sudo ufw allow from 192.168.1.5
+
+# Allow from specific IP to specific port
+sudo ufw allow from 192.168.1.0/24 to any port 3306
+
+# Delete rules
+sudo ufw delete allow 80/tcp
+
+# Reset rules
+sudo ufw reset
+```
+
+#### Firewalld on RHEL/CentOS/Fedora
+
+```bash
+# Check status
+sudo firewall-cmd --state
+
+# List allowed services
+sudo firewall-cmd --list-services
+
+# List all open ports
+sudo firewall-cmd --list-ports
+
+# Add a service
+sudo firewall-cmd --add-service=http --permanent
+
+# Add a port
+sudo firewall-cmd --add-port=8080/tcp --permanent
+
+# Remove a service
+sudo firewall-cmd --remove-service=http --permanent
+
+# Apply changes
+sudo firewall-cmd --reload
+
+# Add rich rule
+sudo firewall-cmd --add-rich-rule='rule family="ipv4" source address="192.168.1.0/24" service name="ssh" accept' --permanent
+```
+
+### Network Services
+
+#### SSH (Secure Shell)
+
+```bash
+# Install SSH server
+sudo apt install openssh-server  # Debian/Ubuntu
+sudo dnf install openssh-server  # Fedora/RHEL
+
+# Start SSH server
+sudo systemctl start sshd
+sudo systemctl enable sshd
+
+# Connect to a remote server
+ssh username@hostname
+
+# Connect with specific port
+ssh -p 2222 username@hostname
+
+# Connect with identity file
+ssh -i /path/to/key.pem username@hostname
+
+# Generate SSH key pair
+ssh-keygen -t rsa -b 4096
+
+# Copy SSH key to remote server
+ssh-copy-id username@hostname
+
+# SSH config file
+nano ~/.ssh/config
+```
+
+Example SSH config:
+```
+Host myserver
+    HostName 192.168.1.10
+    User username
+    Port 22
+    IdentityFile ~/.ssh/id_rsa
+```
+
+#### DHCP (Dynamic Host Configuration Protocol)
+
+```bash
+# Install DHCP server
+sudo apt install isc-dhcp-server  # Debian/Ubuntu
+sudo dnf install dhcp-server      # Fedora/RHEL
+
+# Configure DHCP server
+sudo nano /etc/dhcp/dhcpd.conf
+```
+
+Example dhcpd.conf:
+```
+subnet 192.168.1.0 netmask 255.255.255.0 {
+  range 192.168.1.100 192.168.1.200;
+  option domain-name-servers 8.8.8.8, 8.8.4.4;
+  option domain-name "example.local";
+  option routers 192.168.1.1;
+  option broadcast-address 192.168.1.255;
+  default-lease-time 600;
+  max-lease-time 7200;
+}
+```
+
+#### DNS Server (BIND)
+
+```bash
+# Install BIND
+sudo apt install bind9 bind9utils  # Debian/Ubuntu
+sudo dnf install bind bind-utils   # Fedora/RHEL
+
+# Configure BIND
+sudo nano /etc/bind/named.conf.local
+```
+
+Example zone configuration:
+```
+zone "example.local" {
+    type master;
+    file "/etc/bind/zones/db.example.local";
+};
+```
+
+### Exercise: Network Configuration
+
+1. Set up a static IP address on your network interface
+2. Configure your system to use Google DNS servers (8.8.8.8, 8.8.4.4)
+3. Set up basic firewall rules to allow SSH and HTTP
+4. Generate SSH keys and configure SSH for passwordless login
+5. Use network diagnostic tools to troubleshoot connectivity issues
+
+## Basic Security Principles
+
+Security is a critical aspect of Linux administration. This section covers essential security practices.
+
+### User Account Security
+
+```bash
+# Set password complexity requirements
+sudo nano /etc/pam.d/common-password
+
+# Set password expiration
+sudo chage -M 90 username  # Set max days
+sudo chage -l username     # List password info
+
+# Lock unused accounts
+sudo passwd -l username
+
+# Remove unused accounts
+sudo userdel username
+
+# Configure password policies
+sudo apt install libpam-pwquality  # Debian/Ubuntu
+sudo dnf install libpwquality      # Fedora/RHEL
+
+# Edit password policy configuration
+sudo nano /etc/security/pwquality.conf
+```
+
+Example password policy settings:
+```
+# Minimum password length
+minlen = 12
+
+# Require at least one uppercase character
+ucredit = -1
+
+# Require at least one lowercase character
+lcredit = -1
+
+# Require at least one digit
+dcredit = -1
+
+# Require at least one special character
+ocredit = -1
+
+# Remember 5 previous passwords
+remember = 5
+```
+
+### File and Directory Security
+
+```bash
+# Find files with insecure permissions
+find /home -type f -perm -o+w
+
+# Find SUID/SGID files
+find / -type f -perm /6000 -ls 2>/dev/null
+
+# Set secure permissions for sensitive files
+chmod 600 ~/.ssh/id_rsa           # Private key
+chmod 644 ~/.ssh/id_rsa.pub       # Public key
+chmod 600 ~/.ssh/authorized_keys  # Authorized keys
+chmod 644 ~/.ssh/known_hosts      # Known hosts
+
+# Set secure directory permissions
+chmod 700 ~/.ssh                  # SSH directory
+chmod 750 /home/username          # Home directory
+```
+
+### System Security Updates
+
+```bash
+# Update package lists
+sudo apt update      # Debian/Ubuntu
+sudo dnf check-update # Fedora/RHEL
+
+# Install security updates only
+sudo apt-get -s dist-upgrade | grep "^Inst" | grep -i security # Check security updates
+sudo unattended-upgrade -d # Debian/Ubuntu
+
+# Enable automatic security updates
+sudo apt install unattended-upgrades
+sudo dpkg-reconfigure unattended-upgrades
+```
+
+### Securing SSH
+
+```bash
+# Edit SSH configuration
+sudo nano /etc/ssh/sshd_config
+```
+
+Recommended SSH settings:
+```
+# Disable root login
+PermitRootLogin no
+
+# Use SSH key authentication only
+PasswordAuthentication no
+
+# Limit user access
+AllowUsers user1 user2
+
+# Change default port (adds security by obscurity)
+Port 2222
+
+# Restrict to specific IP addresses
+ListenAddress 192.168.1.10
+
+# Set idle timeout (5 minutes)
+ClientAliveInterval 300
+ClientAliveCountMax 0
+
+# Disable empty passwords
+PermitEmptyPasswords no
+
+# Disable X11 forwarding if not needed
+X11Forwarding no
+
+# Use strong ciphers and MACs
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com
+```
+
+```bash
+# Restart SSH service after configuration changes
+sudo systemctl restart sshd
+```
+
+### Firewall Configuration
+
+```bash
+# Basic UFW setup (Ubuntu/Debian)
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+
+# Basic firewalld setup (RHEL/CentOS/Fedora)
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --reload
+```
+
+### Security Auditing
+
+```bash
+# Install security auditing tools
+sudo apt install lynis rkhunter chkrootkit # Debian/Ubuntu
+sudo dnf install lynis rkhunter chkrootkit # Fedora/RHEL
+
+# Run security audit
+sudo lynis audit system
+
+# Check for rootkits
+sudo rkhunter --check
+sudo chkrootkit
+
+# Scan for vulnerabilities
+sudo apt install nmap
+sudo nmap -sV -p1-65535 localhost
+```
+
+### Intrusion Detection
+
+```bash
+# Install fail2ban to prevent brute force attacks
+sudo apt install fail2ban  # Debian/Ubuntu
+sudo dnf install fail2ban  # Fedora/RHEL
+
+# Configure fail2ban
+sudo nano /etc/fail2ban/jail.local
+```
+
+Example fail2ban configuration:
+```
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+bantime = 3600
+```
+
+```bash
+# Start and enable fail2ban
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+
+# Check fail2ban status
+sudo fail2ban-client status
+sudo fail2ban-client status sshd
+```
+
+### SELinux and AppArmor
+
+#### SELinux (Security-Enhanced Linux)
+
+Used primarily on Red Hat-based systems:
+
+```bash
+# Check SELinux status
+getenforce
+
+# Set SELinux mode
+sudo setenforce 0  # Permissive mode
+sudo setenforce 1  # Enforcing mode
+
+# Configure SELinux
+sudo nano /etc/selinux/config
+
+# List SELinux contexts
+ls -Z
+
+# Change file context
+sudo chcon -t httpd_sys_content_t /var/www/html/index.html
+
+# Restore default context
+sudo restorecon -v /var/www/html/index.html
+```
+
+#### AppArmor
+
+Used primarily on Debian-based systems:
+
+```bash
+# Check AppArmor status
+sudo aa-status
+
+# List AppArmor profiles
+sudo apparmor_status
+
+# Put a profile in enforce mode
+sudo aa-enforce /etc/apparmor.d/usr.sbin.nginx
+
+# Put a profile in complain mode
+sudo aa-complain /etc/apparmor.d/usr.sbin.nginx
+```
+
+### Exercise: Security Hardening
+
+1. Configure password policies for your system
+2. Secure SSH by disabling root login and using key-based authentication
+3. Set up a basic firewall allowing only necessary services
+4. Install and configure fail2ban to prevent brute force attacks
+5. Run a security audit using Lynis and address high-priority findings
+
+## System Monitoring
+
+Monitoring is essential for maintaining system health and diagnosing issues.
+
+### Real-time Monitoring Tools
+
+```bash
+# System activity reporter
+sar 1 10  # Sample every 1 second for 10 samples
+
+# Process viewer
+top
+htop  # More user-friendly version
+
+# I/O monitoring
+iostat -xz 1
+
+# Memory usage
+free -m
+watch -n 1 free -m  # Update every second
+
+# Network monitoring
+netstat -tulpn
+ss -tulpn
+
+# Disk usage
+df -h
+du -sh /var/*  # Size of directories in /var
+
+# System overview
+glances  # Must install: sudo apt install glances
+
+# Watch command for any command
+watch -n 5 'ps aux | grep nginx'  # Monitor nginx processes every 5 seconds
+```
+
+### Log Monitoring
+
+```bash
+# View system messages
+tail -f /var/log/syslog
+
+# View authentication logs
+tail -f /var/log/auth.log
+
+# View Apache/Nginx access logs
+tail -f /var/log/apache2/access.log
+tail -f /var/log/nginx/access.log
+
+# Monitor logs with journalctl (systemd)
+journalctl -f  # Follow all logs
+journalctl -u nginx -f  # Follow nginx service logs
+
+# Search logs for errors
+grep -i error /var/log/syslog
+```
+
+### Process Monitoring
+
+```bash
+# Find CPU/memory intensive processes
+ps aux --sort=-%cpu | head -10  # Top 10 CPU consumers
+ps aux --sort=-%mem | head -10  # Top 10 memory consumers
+
+# Track process activity
+pstree -p  # Process tree
+pgrep nginx  # Find PIDs of nginx processes
+
+# Monitor specific process
+top -p $(pgrep -d ',' nginx)
+```
+
+### Advanced Monitoring Tools
+
+#### Prometheus and Grafana
+
+Modern monitoring stack for metrics collection and visualization:
+
+```bash
+# Install Prometheus
+wget https://github.com/prometheus/prometheus/releases/download/v2.37.0/prometheus-2.37.0.linux-amd64.tar.gz
+tar xvfz prometheus-*.tar.gz
+cd prometheus-*
+
+# Run Prometheus
+./prometheus --config.file=prometheus.yml
+
+# Install Node Exporter for system metrics
+wget https://github.com/prometheus/node_exporter/releases/download/v1.3.1/node_exporter-1.3.1.linux-amd64.tar.gz
+tar xvfz node_exporter-*.tar.gz
+cd node_exporter-*
+./node_exporter
+
+# Install Grafana
+sudo apt-get install -y apt-transport-https software-properties-common
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+sudo apt-get update
+sudo apt-get install grafana
+sudo systemctl start grafana-server
+sudo systemctl enable grafana-server
+```
+
+#### Nagios/Icinga
+
+Traditional monitoring systems for availability and performance:
+
+```bash
+# Install Nagios
+sudo apt install nagios4  # Debian/Ubuntu
+
+# Install Icinga2
+sudo apt install icinga2 icingaweb2  # Debian/Ubuntu
+```
+
+### Custom Monitoring Scripts
+
+Example disk space alert script:
+```bash
+#!/bin/bash
+
+THRESHOLD=90
+EMAIL="admin@example.com"
+
+df -h | grep -vE '^Filesystem|tmpfs|cdrom' | awk '{ print $5 " " $1 }' | while read output;
+do
+  usep=$(echo $output | awk '{ print $1}' | cut -d'%' -f1 )
+  partition=$(echo $output | awk '{ print $2 }' )
+  if [ $usep -ge $THRESHOLD ]; then
+    echo "ALERT: Running out of space \"$partition ($usep%)\" on $(hostname) as on $(date)" | \
+    mail -s "Disk Space Alert: $usep% on $(hostname)" $EMAIL
+  fi
+done
+```
+
+### Setting Up Monitoring as a Service
+
+```bash
+# Create a systemd service for a monitoring script
+sudo nano /etc/systemd/system/disk-monitor.service
+```
+
+Example systemd service:
+```ini
+[Unit]
+Description=Disk Space Monitoring Service
+2890
