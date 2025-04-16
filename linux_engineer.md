@@ -392,5 +392,877 @@ Understanding basic networking is essential for Linux administration:
 - **Switch**: Connects devices within the same network
 - **Firewall**: Controls incoming and outgoing network traffic
 - **DHCP**: Assigns IP addresses automatically
-- **DNS**:
+- **DNS**: Domain Name System - translates domain names to IP addresses
+- **Network Interface Card (NIC)**: Hardware that connects a device to a network
 
+#### Networking Protocols
+
+- **TCP/IP**: The fundamental suite of protocols used for internet communication
+- **HTTP/HTTPS**: For web browsing (Hypertext Transfer Protocol)
+- **SSH**: Secure Shell for remote access
+- **FTP/SFTP**: File Transfer Protocol and its secure version
+- **SMTP/POP3/IMAP**: Email protocols
+
+#### Network Topology
+
+- **LAN (Local Area Network)**: Network in a limited area (home, office)
+- **WAN (Wide Area Network)**: Network spanning a large geographic area
+- **VPN (Virtual Private Network)**: Secure connection over public networks
+- **Internet**: Global network of interconnected networks
+
+### Basic Network Commands
+
+We'll explore these in more detail later, but these are key commands for networking in Linux:
+
+```bash
+# Display network interfaces
+ifconfig     # Traditional command
+ip addr      # Modern command
+
+# Test connectivity to a host
+ping google.com
+
+# Trace the route to a host
+traceroute google.com
+
+# Look up DNS information
+nslookup google.com
+dig google.com
+
+# Display network connections
+netstat -tuln   # Traditional command
+ss -tuln        # Modern command
+```
+
+### Exercise: Basic Networking
+
+1. Identify your computer's IP address and subnet mask
+2. Find your default gateway
+3. Use `ping` to test connectivity to a website
+4. Use `traceroute` to see the path to a website
+5. Look up the IP address of a website using `nslookup` or `dig`
+
+## 🌱 Linux Fundamentals
+
+This section builds on the basics, introducing you to the core skills needed for Linux administration.
+
+## Understanding the Linux Filesystem
+
+### Filesystem Hierarchy Standard
+
+Linux follows the Filesystem Hierarchy Standard (FHS), which defines the directory structure and contents:
+
+```
+/          # Root directory - top of the filesystem hierarchy
+├── bin    # Essential command binaries
+├── boot   # Boot loader files and kernel
+├── dev    # Device files
+├── etc    # System configuration files
+├── home   # User home directories
+├── lib    # Essential shared libraries
+├── media  # Mount points for removable media
+├── mnt    # Temporary mount points
+├── opt    # Optional application software
+├── proc   # Virtual filesystem for process information
+├── root   # Home directory for the root user
+├── run    # Run-time variable data
+├── sbin   # System binaries
+├── srv    # Data for services provided by the system
+├── sys    # Virtual filesystem for system information
+├── tmp    # Temporary files
+├── usr    # User utilities and applications
+└── var    # Variable data (logs, spool files, etc.)
+```
+
+### Key Directories Explained
+
+- **/bin**: Contains essential command binaries (executable programs) that need to be available in single-user mode
+- **/boot**: Files needed for booting, including the Linux kernel and boot loader configuration
+- **/dev**: Device files representing hardware devices (e.g., /dev/sda for the first hard drive)
+- **/etc**: System-wide configuration files
+- **/home**: User home directories (e.g., /home/username)
+- **/lib**: Essential shared libraries needed by programs in /bin and /sbin
+- **/opt**: Optional software and add-on packages
+- **/proc**: Virtual filesystem providing process and kernel information
+- **/root**: Home directory for the root (administrative) user
+- **/sbin**: System administration binaries
+- **/srv**: Data for services provided by the system
+- **/sys**: Interface to kernel objects (similar to /proc)
+- **/tmp**: Temporary files (typically cleared on reboot)
+- **/usr**: Secondary hierarchy containing non-essential utilities, applications, and files
+- **/var**: Variable data files, including logs, spool files, and temporary files
+
+### Filesystem Types
+
+Linux supports various filesystem types:
+
+- **ext4**: Fourth Extended Filesystem - the default on many Linux distributions
+- **XFS**: High-performance journaling filesystem, default on some distributions like RHEL
+- **Btrfs**: B-tree filesystem with advanced features like snapshots and pooling
+- **ZFS**: Advanced filesystem with volume management, data integrity features
+- **NTFS/FAT32**: Windows filesystems (limited support for compatibility)
+
+### Mount Points
+
+In Linux, accessing storage devices requires "mounting" them to a directory in the filesystem:
+
+```bash
+# List mounted filesystems
+mount
+
+# Mount a USB drive (replace with actual device and mount point)
+sudo mount /dev/sdb1 /mnt/usb
+
+# Unmount a filesystem
+sudo umount /mnt/usb
+```
+
+### File Types
+
+Linux has several types of files:
+
+- **Regular files**: Normal data files (text, images, executables)
+- **Directories**: Containers for other files
+- **Links**: 
+  - Symbolic links (similar to shortcuts in Windows)
+  - Hard links (multiple directory entries pointing to the same data)
+- **Device files**: Represent hardware devices
+  - Block devices (storage devices like hard drives)
+  - Character devices (serial devices, terminals)
+- **Named pipes**: Allow communication between processes
+- **Sockets**: Enable inter-process communication
+
+### Exercise: Exploring the Filesystem
+
+1. Open a terminal and navigate through the filesystem hierarchy
+2. List the contents of key directories (/bin, /etc, /home)
+3. Check what filesystems are mounted on your system
+4. Identify different file types in the system
+
+## Command Line Basics
+
+### Understanding the Terminal
+
+The terminal (or console) is a text-based interface for interacting with the operating system:
+
+- **Terminal emulator**: Application that provides access to the shell (e.g., GNOME Terminal, Konsole)
+- **Shell**: Command interpreter that executes commands (e.g., Bash, Zsh)
+- **Command prompt**: Where you enter commands (typically ends with $ for regular users, # for root)
+
+### Opening a Terminal
+
+- In Ubuntu: Press Ctrl+Alt+T or search for "Terminal" in the applications menu
+- In most Linux distributions: Look for "Terminal" or "Console" in the system menu
+
+### Shell Basics
+
+The most common shell is Bash (Bourne Again SHell):
+
+```bash
+username@hostname:~$ command [options] [arguments]
+```
+
+Where:
+- **username**: Your login name
+- **hostname**: Your computer's name
+- **~**: Current directory (~ represents your home directory)
+- **$**: Regular user prompt (# for root/admin)
+- **command**: The program you want to run
+- **options**: Modify the command's behavior (usually start with - or --)
+- **arguments**: What the command operates on (files, directories, etc.)
+
+### Basic Shell Navigation
+
+```bash
+# Print working directory (current location)
+pwd
+
+# List directory contents
+ls
+
+# List with details
+ls -l
+
+# List including hidden files
+ls -a
+
+# Change directory
+cd /path/to/directory
+
+# Go to home directory
+cd
+# or
+cd ~
+
+# Go up one directory
+cd ..
+
+# Go to previous directory
+cd -
+```
+
+### Getting Help
+
+There are several ways to get help with commands:
+
+```bash
+# Display manual page for a command
+man ls
+
+# Brief help for a command
+ls --help
+
+# Information about a command
+info ls
+
+# Show what a command does (often with examples)
+whatis ls
+```
+
+### Command History
+
+Bash keeps a history of commands you've entered:
+
+```bash
+# Show command history
+history
+
+# Run the previous command
+!!
+
+# Run command number 42 from history
+!42
+
+# Search history (press Ctrl+R and start typing)
+# Press Ctrl+R again to cycle through matches
+```
+
+### Tab Completion
+
+The Tab key helps you complete commands and filenames:
+
+1. Start typing a command or filename
+2. Press Tab once to complete if there's only one match
+3. Press Tab twice to show all possibilities if there are multiple matches
+
+### Command Line Shortcuts
+
+- **Ctrl+C**: Interrupt (kill) the current process
+- **Ctrl+Z**: Suspend the current process
+- **Ctrl+D**: End of input (log out from shell)
+- **Ctrl+L**: Clear the screen (same as `clear` command)
+- **Ctrl+A**: Move cursor to beginning of line
+- **Ctrl+E**: Move cursor to end of line
+- **Ctrl+U**: Cut from cursor to beginning of line
+- **Ctrl+K**: Cut from cursor to end of line
+- **Ctrl+W**: Cut the word before the cursor
+
+### Exercise: Command Line Basics
+
+1. Open a terminal and identify the parts of the prompt
+2. Practice navigating with `cd` and viewing directories with `ls`
+3. Check your current location with `pwd`
+4. Look up the manual page for a command like `ls` or `cd`
+5. Try tab completion with partial commands and filenames
+6. Use the history feature to recall and reuse commands
+
+## Working with Files and Directories
+
+### Creating and Managing Directories
+
+```bash
+# Create a directory
+mkdir my_directory
+
+# Create nested directories
+mkdir -p parent/child/grandchild
+
+# Remove an empty directory
+rmdir my_directory
+
+# Remove a directory and its contents (BE CAREFUL!)
+rm -r my_directory
+```
+
+### Creating and Viewing Files
+
+```bash
+# Create an empty file
+touch myfile.txt
+
+# Display file contents
+cat myfile.txt
+
+# View large files one page at a time
+less myfile.txt
+
+# View the first 10 lines of a file
+head myfile.txt
+
+# View the last 10 lines of a file
+tail myfile.txt
+
+# Follow a file as it grows (useful for logs)
+tail -f /var/log/syslog
+```
+
+### Copying, Moving, and Removing Files
+
+```bash
+# Copy a file
+cp source.txt destination.txt
+
+# Copy a directory and its contents
+cp -r source_dir destination_dir
+
+# Move/rename a file
+mv oldname.txt newname.txt
+
+# Move a file to a different directory
+mv file.txt /path/to/directory/
+
+# Remove a file
+rm file.txt
+
+# Remove multiple files
+rm file1.txt file2.txt
+
+# Remove files interactively (with confirmation)
+rm -i file.txt
+```
+
+### Finding Files
+
+```bash
+# Find files by name in the current directory and subdirectories
+find . -name "*.txt"
+
+# Find files by type
+find /home -type f  # Regular files
+find /home -type d  # Directories
+
+# Find files by size
+find /var -size +10M  # Files larger than 10 MB
+
+# Find files by owner
+find /home -user username
+
+# Find files modified in the last 7 days
+find /home -mtime -7
+
+# Execute a command on found files
+find . -name "*.txt" -exec ls -l {} \;
+```
+
+### File Compression and Archives
+
+```bash
+# Create a tar archive
+tar -cvf archive.tar file1 file2 directory1
+
+# Extract from a tar archive
+tar -xvf archive.tar
+
+# Create a compressed tar archive with gzip
+tar -czvf archive.tar.gz directory/
+
+# Extract from a compressed tar archive
+tar -xzvf archive.tar.gz
+
+# Zip files
+zip -r archive.zip directory/
+
+# Unzip files
+unzip archive.zip
+```
+
+### Viewing File Information
+
+```bash
+# View file details
+ls -l filename
+
+# Determine file type
+file filename
+
+# View file size
+du -h filename
+
+# View disk usage of directories
+du -sh directory/
+```
+
+### Exercise: Working with Files and Directories
+
+1. Create a directory structure for a project
+2. Create several files using `touch` and `echo`
+3. Copy and move files between directories
+4. Find specific files based on name, type, or size
+5. Create an archive of your project files
+6. Practice viewing file contents with different commands
+
+## Users, Groups and Permissions
+
+### User Management
+
+In Linux, every user has:
+- A unique username
+- A numeric user ID (UID)
+- A primary group
+- A home directory
+- A login shell
+
+#### Key User-Related Files
+
+- **/etc/passwd**: User account information
+- **/etc/shadow**: Encrypted passwords
+- **/etc/group**: Group information
+
+#### User Management Commands
+
+```bash
+# Add a new user
+sudo adduser username
+# or (more basic version)
+sudo useradd username
+
+# Set or change a user's password
+sudo passwd username
+
+# Modify an existing user
+sudo usermod -options username
+
+# Delete a user
+sudo deluser username
+# or (with home directory removal)
+sudo deluser --remove-home username
+
+# View user information
+id username
+
+# Switch to another user
+su - username
+
+# Run a command as another user
+sudo -u username command
+
+# List all users
+cat /etc/passwd
+```
+
+### Group Management
+
+Groups organize users for access control purposes:
+
+```bash
+# Create a new group
+sudo addgroup groupname
+# or
+sudo groupadd groupname
+
+# Add a user to a group
+sudo adduser username groupname
+# or
+sudo usermod -aG groupname username
+
+# Remove a user from a group
+sudo deluser username groupname
+# or
+sudo gpasswd -d username groupname
+
+# Change a user's primary group
+sudo usermod -g groupname username
+
+# List a user's groups
+groups username
+
+# Delete a group
+sudo delgroup groupname
+# or
+sudo groupdel groupname
+
+# List all groups
+cat /etc/group
+```
+
+### File Permissions
+
+Linux uses a permission system to control access to files and directories:
+
+#### Permission Types
+
+- **Read (r)**: View the contents of a file or list directory contents
+- **Write (w)**: Modify a file or create/delete files in a directory
+- **Execute (x)**: Execute a file (if it's a program) or access a directory
+
+#### Permission Classes
+
+- **User (u)**: The owner of the file
+- **Group (g)**: Users in the file's group
+- **Others (o)**: All other users
+
+#### Viewing Permissions
+
+```bash
+ls -l filename
+```
+
+Output example:
+```
+-rwxr-xr--  1 user group  4096 Apr 15 14:30 filename
+```
+
+Where:
+- First character:
+  - `-`: Regular file
+  - `d`: Directory
+  - `l`: Symbolic link
+- Next 9 characters: Permissions for user (rwx), group (r-x), and others (r--)
+- Number: Number of hard links
+- user: File owner
+- group: File group
+- 4096: File size in bytes
+- Apr 15 14:30: Last modification time
+- filename: File name
+
+#### Changing Permissions
+
+```bash
+# Symbolic method
+chmod u+x file.sh       # Add execute permission for the owner
+chmod g-w file.txt      # Remove write permission for the group
+chmod o=r file.txt      # Set others to only have read permission
+chmod a+r file.txt      # Add read permission for all (user, group, others)
+
+# Octal (numeric) method
+chmod 755 file.sh       # rwxr-xr-x (owner:rwx, group:r-x, others:r-x)
+chmod 644 file.txt      # rw-r--r-- (owner:rw-, group:r--, others:r--)
+chmod 600 private.key   # rw------- (owner:rw-, no permissions for group or others)
+
+# Recursive change for directories
+chmod -R 755 directory/
+```
+
+#### Common Permission Patterns
+
+- **755 (rwxr-xr-x)**: Standard for executable files and directories
+- **644 (rw-r--r--)**: Standard for regular files
+- **700 (rwx------)**: Private executable
+- **600 (rw-------)**: Private file (like SSH keys)
+
+#### Changing Ownership
+
+```bash
+# Change the owner of a file
+sudo chown username file.txt
+
+# Change the group of a file
+sudo chgrp groupname file.txt
+
+# Change both owner and group
+sudo chown username:groupname file.txt
+
+# Recursive ownership change
+sudo chown -R username:groupname directory/
+```
+
+### Special Permissions
+
+#### SUID (Set User ID)
+
+When set on an executable, it runs with the permissions of the file owner, not the user who runs it:
+
+```bash
+chmod u+s file
+# or 
+chmod 4755 file  # The 4 adds SUID
+```
+
+#### SGID (Set Group ID)
+
+Similar to SUID but for groups. When set on a directory, new files in that directory inherit the directory's group:
+
+```bash
+chmod g+s directory
+# or
+chmod 2755 directory  # The 2 adds SGID
+```
+
+#### Sticky Bit
+
+Primarily used on directories to prevent users from deleting files owned by others:
+
+```bash
+chmod +t directory
+# or
+chmod 1777 directory  # The 1 adds the sticky bit
+```
+
+### Access Control Lists (ACLs)
+
+ACLs provide more granular permissions beyond the basic owner/group/others model:
+
+```bash
+# Install ACL support (if needed)
+sudo apt install acl  # Ubuntu/Debian
+sudo dnf install acl  # Fedora/RHEL
+
+# View ACLs
+getfacl file.txt
+
+# Set an ACL (give user john read-write access)
+setfacl -m u:john:rw file.txt
+
+# Set a default ACL (for new files in a directory)
+setfacl -d -m g:developers:rwx directory/
+```
+
+### Exercise: Users, Groups, and Permissions
+
+1. Create two new users and a new group
+2. Add both users to the new group
+3. Create a shared directory owned by the group
+4. Set permissions so that:
+   - Both users can read, write, and execute in the directory
+   - New files in the directory belong to the group
+   - Other users can read but not write to the directory
+5. Test creating files as each user
+6. Experiment with changing file permissions
+
+## Package Management
+
+Linux distributions use package management systems to install, update, and remove software.
+
+### Package Managers
+
+Different distributions use different package managers:
+
+#### Debian-based (Ubuntu, Debian, Linux Mint)
+
+Uses **APT** (Advanced Package Tool):
+
+```bash
+# Update package lists
+sudo apt update
+
+# Upgrade installed packages
+sudo apt upgrade
+
+# Upgrade the distribution
+sudo apt dist-upgrade
+
+# Install a package
+sudo apt install package-name
+
+# Remove a package
+sudo apt remove package-name
+
+# Remove a package and its configuration files
+sudo apt purge package-name
+
+# Search for a package
+apt search keyword
+
+# Show package information
+apt show package-name
+
+# List installed packages
+apt list --installed
+
+# Clean up downloaded package files
+sudo apt autoremove
+sudo apt clean
+```
+
+#### Red Hat-based (RHEL, CentOS, Fedora)
+
+Uses **DNF** (or older systems use **YUM**):
+
+```bash
+# Update package lists and upgrade packages
+sudo dnf upgrade
+
+# Install a package
+sudo dnf install package-name
+
+# Remove a package
+sudo dnf remove package-name
+
+# Search for a package
+dnf search keyword
+
+# Show package information
+dnf info package-name
+
+# List installed packages
+dnf list installed
+
+# List available updates
+dnf check-update
+
+# Clean up cached package data
+sudo dnf clean all
+```
+
+### Software Repositories
+
+Repositories are servers that host collections of packages:
+
+#### Managing Repositories
+
+**Debian-based:**
+```bash
+# Repository configuration files are in:
+/etc/apt/sources.list
+/etc/apt/sources.list.d/
+
+# Add a repository
+sudo add-apt-repository ppa:repository-name/ppa
+
+# After adding repositories, update package lists
+sudo apt update
+```
+
+**Red Hat-based:**
+```bash
+# Repository configuration files are in:
+/etc/yum.repos.d/
+
+# Add a repository
+sudo dnf config-manager --add-repo repository_url
+
+# Enable a repository
+sudo dnf config-manager --enable repository
+
+# Disable a repository
+sudo dnf config-manager --disable repository
+```
+
+### Package Dependencies
+
+Modern package managers automatically handle dependencies (other packages required by the software):
+
+```bash
+# Resolve dependencies for a package without installing it
+apt-cache depends package-name   # Debian-based
+dnf repoquery --requires --resolve package-name   # Red Hat-based
+```
+
+### Installing Software from Source
+
+Sometimes you need to install software not available in repositories:
+
+```bash
+# Install build essentials
+sudo apt install build-essential   # Debian-based
+sudo dnf group install "Development Tools"   # Red Hat-based
+
+# Basic source installation process
+tar -xzvf package-name.tar.gz
+cd package-name
+./configure
+make
+sudo make install
+```
+
+### Alternative Package Managers
+
+Some software is distributed using universal package managers:
+
+#### Snap (by Canonical/Ubuntu)
+
+```bash
+# Install snap
+sudo apt install snapd   # Debian-based
+sudo dnf install snapd   # Red Hat-based
+
+# Install a snap package
+sudo snap install package-name
+
+# Update all snap packages
+sudo snap refresh
+
+# List installed snaps
+snap list
+
+# Remove a snap
+sudo snap remove package-name
+```
+
+#### Flatpak
+
+```bash
+# Install Flatpak
+sudo apt install flatpak   # Debian-based
+sudo dnf install flatpak   # Red Hat-based
+
+# Add Flathub repository
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# Install a Flatpak
+flatpak install flathub app-id
+
+# Run a Flatpak application
+flatpak run app-id
+
+# Update Flatpaks
+flatpak update
+
+# List installed Flatpaks
+flatpak list
+```
+
+### Exercise: Package Management
+
+1. Update your system's package lists and install any available updates
+2. Search for and install a text editor (like 'nano' or 'vim')
+3. Find information about the installed package
+4. Remove the package and verify it was removed
+5. Add a new repository and install software from it
+6. Try installing a Snap or Flatpak application
+
+## Text Editing in Linux
+
+Text editing is a fundamental skill for Linux administration as configuration files are plain text.
+
+### Common Text Editors
+
+#### nano
+
+Beginner-friendly, easy to use:
+
+```bash
+# Open a file
+nano filename.txt
+```
+
+**Basic nano commands:**
+- **Ctrl+O**: Save file
+- **Ctrl+X**: Exit
+- **Ctrl+G**: Help
+- **Ctrl+K**: Cut line
+- **Ctrl+U**: Paste line
+- **Ctrl+W**: Search
+- **Ctrl+\**: Search and replace
+
+#### vim (or vi)
+
+Powerful but steeper learning curve:
+
+```bash
+# Open a file
+vim filename.txt
+```
+
+**vim operates in different modes:**
+
+- **Command mode** (default): For navigation and commands
+  - `h`, `j`, `k`, `l`: Move cursor left, down, up, right
+  - `i`: Enter insert mode
+  - `Esc`: Return to command mode
+  - `:w`: Save
+  - `:q`: Quit
+  - `:wq` or `ZZ`: Save and quit
+  - `:q!`: Quit without saving
+
+- **Insert mode**:
