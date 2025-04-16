@@ -2887,4 +2887,390 @@ Example systemd service:
 ```ini
 [Unit]
 Description=Disk Space Monitoring Service
-2890
+
+[Service]
+Type=oneshot
+ExecStart=/path/to/disk-monitor.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Create a timer to run the service periodically
+sudo nano /etc/systemd/system/disk-monitor.timer
+```
+
+Example systemd timer:
+```ini
+[Unit]
+Description=Run Disk Space Monitor Hourly
+
+[Timer]
+OnCalendar=*-*-* *:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+# Enable and start the timer
+sudo systemctl enable disk-monitor.timer
+sudo systemctl start disk-monitor.timer
+```
+
+### Exercise: System Monitoring
+
+1. Set up basic monitoring using top, htop, and sar
+2. Create a custom monitoring script for a specific metric
+3. Configure log rotation for a service
+4. Install and configure Prometheus and Grafana for advanced monitoring
+5. Set up alerts for critical system events
+
+## 🏆 Advanced Linux Skills
+
+This section covers advanced topics for experienced Linux administrators.
+
+## Enterprise Linux Administration
+
+### Directory Services and Authentication
+
+#### LDAP Integration
+
+LDAP (Lightweight Directory Access Protocol) provides centralized authentication and directory services:
+
+```bash
+# Install LDAP client tools
+sudo apt install ldap-utils libpam-ldap libnss-ldap  # Debian/Ubuntu
+sudo dnf install openldap-clients nss-pam-ldapd      # Fedora/RHEL
+
+# Configure LDAP client
+sudo pam-auth-update
+sudo auth-client-config -t nss -p lac_ldap
+
+# Test LDAP connection
+ldapsearch -x -b "dc=example,dc=com" -H ldap://ldap.example.com
+```
+
+#### Active Directory Integration
+
+```bash
+# Install required packages
+sudo apt install realmd sssd sssd-tools samba-common krb5-user  # Debian/Ubuntu
+sudo dnf install realmd sssd oddjob oddjob-mkhomedir adcli samba-common  # Fedora/RHEL
+
+# Join Active Directory domain
+sudo realm join ad.example.com -U admin
+
+# Check domain status
+realm list
+
+# Configure automatic home directory creation
+sudo pam-auth-update --enable mkhomedir
+```
+
+### Network File Systems
+
+#### NFS (Network File System)
+
+```bash
+# Server installation
+sudo apt install nfs-kernel-server  # Debian/Ubuntu
+sudo dnf install nfs-utils         # Fedora/RHEL
+
+# Configure exports
+sudo nano /etc/exports
+```
+
+Example exports file:
+```
+/shared 192.168.1.0/24(rw,sync,no_subtree_check)
+/backups 192.168.1.100(ro,sync,no_subtree_check)
+```
+
+```bash
+# Apply configuration
+sudo exportfs -ra
+
+# Client installation
+sudo apt install nfs-common  # Debian/Ubuntu
+sudo dnf install nfs-utils   # Fedora/RHEL
+
+# Mount NFS share
+sudo mount server:/shared /mnt/shared
+
+# Auto-mount at boot (add to /etc/fstab)
+server:/shared /mnt/shared nfs defaults 0 0
+```
+
+#### Samba (SMB/CIFS)
+
+```bash
+# Install Samba
+sudo apt install samba  # Debian/Ubuntu
+sudo dnf install samba  # Fedora/RHEL
+
+# Configure Samba
+sudo nano /etc/samba/smb.conf
+```
+
+Example smb.conf:
+```
+[global]
+   workgroup = WORKGROUP
+   security = user
+   map to guest = bad user
+
+[shared]
+   path = /srv/shared
+   browseable = yes
+   read only = no
+   guest ok = no
+   valid users = @smbusers
+```
+
+```bash
+# Create Samba user
+sudo smbpasswd -a username
+
+# Restart Samba
+sudo systemctl restart smbd nmbd
+
+# Client: Mount SMB share
+sudo mount -t cifs //server/shared /mnt/shared -o username=user,password=pass
+```
+
+### High Availability and Clustering
+
+#### Pacemaker and Corosync
+
+Pacemaker is a high-availability cluster resource manager:
+
+```bash
+# Install Pacemaker
+sudo apt install pacemaker corosync pcs  # Debian/Ubuntu
+sudo dnf install pacemaker corosync pcs  # Fedora/RHEL
+
+# Set pcsd password
+sudo passwd hacluster
+
+# Start and enable services
+sudo systemctl enable pcsd
+sudo systemctl start pcsd
+
+# Authenticate nodes
+sudo pcs cluster auth node1 node2 -u hacluster
+
+# Create cluster
+sudo pcs cluster setup --name mycluster node1 node2
+
+# Start cluster
+sudo pcs cluster start --all
+
+# Create resources
+sudo pcs resource create webserver ocf:heartbeat:apache configfile=/etc/httpd/conf/httpd.conf op monitor interval=30s
+
+# Configure constraints
+sudo pcs constraint location webserver prefers node1=100
+```
+
+#### Load Balancing with HAProxy
+
+```bash
+# Install HAProxy
+sudo apt install haproxy  # Debian/Ubuntu
+sudo dnf install haproxy  # Fedora/RHEL
+
+# Configure HAProxy
+sudo nano /etc/haproxy/haproxy.cfg
+```
+
+Example HAProxy configuration:
+```
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5000
+    timeout client 50000
+    timeout server 50000
+
+frontend http_front
+    bind *:80
+    stats uri /haproxy?stats
+    default_backend http_back
+
+backend http_back
+    balance roundrobin
+    server web1 192.168.1.11:80 check
+    server web2 192.168.1.12:80 check
+```
+
+```bash
+# Check configuration
+sudo haproxy -c -f /etc/haproxy/haproxy.cfg
+
+# Restart HAProxy
+sudo systemctl restart haproxy
+```
+
+#### Linux Virtual Server (LVS)
+
+```bash
+# Install ipvsadm
+sudo apt install ipvsadm  # Debian/Ubuntu
+sudo dnf install ipvsadm  # Fedora/RHEL
+
+# Configure virtual server
+sudo ipvsadm -A -t 192.168.1.100:80 -s rr
+sudo ipvsadm -a -t 192.168.1.100:80 -r 192.168.1.11:80 -m
+sudo ipvsadm -a -t 192.168.1.100:80 -r 192.168.1.12:80 -m
+
+# Save configuration
+sudo ipvsadm-save -n > /etc/ipvsadm.rules
+```
+
+### Virtualization and Containers
+
+#### KVM Virtualization
+
+```bash
+# Check if CPU supports virtualization
+grep -E '(vmx|svm)' /proc/cpuinfo
+
+# Install KVM
+sudo apt install qemu-kvm libvirt-daemon-system virtinst bridge-utils  # Debian/Ubuntu
+sudo dnf install qemu-kvm libvirt virt-install bridge-utils           # Fedora/RHEL
+
+# Start and enable libvirtd
+sudo systemctl enable libvirtd
+sudo systemctl start libvirtd
+
+# Create a VM
+sudo virt-install --name ubuntu20 \
+  --ram 2048 \
+  --disk path=/var/lib/libvirt/images/ubuntu20.qcow2,size=20 \
+  --vcpus 2 \
+  --os-type linux \
+  --os-variant ubuntu20.04 \
+  --network bridge=virbr0 \
+  --graphics none \
+  --console pty,target_type=serial \
+  --location 'http://archive.ubuntu.com/ubuntu/dists/focal/main/installer-amd64/' \
+  --extra-args 'console=ttyS0,115200n8 serial'
+
+# List VMs
+sudo virsh list --all
+
+# Start/stop VM
+sudo virsh start ubuntu20
+sudo virsh shutdown ubuntu20
+
+# Connect to VM console
+sudo virsh console ubuntu20
+```
+
+#### Docker Containers
+
+```bash
+# Install Docker
+sudo apt install docker.io  # Debian/Ubuntu
+sudo dnf install docker-ce  # Fedora/RHEL
+
+# Start and enable Docker
+sudo systemctl enable docker
+sudo systemctl start docker
+
+# Add user to docker group
+sudo usermod -aG docker $USER
+
+# Pull an image
+docker pull nginx
+
+# Run a container
+docker run -d -p 80:80 --name webserver nginx
+
+# List containers
+docker ps
+
+# Stop container
+docker stop webserver
+
+# Remove container
+docker rm webserver
+
+# Create a Dockerfile
+nano Dockerfile
+```
+
+Example Dockerfile:
+```Dockerfile
+FROM ubuntu:20.04
+RUN apt-get update && apt-get install -y nginx
+COPY index.html /var/www/html/
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+```bash
+# Build an image
+docker build -t mywebserver .
+
+# Run custom image
+docker run -d -p 8080:80 mywebserver
+```
+
+#### Kubernetes
+
+```bash
+# Install minikube for local testing
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+# Install kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+
+# Start minikube
+minikube start
+
+# Basic kubectl commands
+kubectl get nodes
+kubectl get pods
+
+# Deploy a sample application
+kubectl create deployment nginx --image=nginx
+kubectl expose deployment nginx --port=80 --type=NodePort
+
+# Access the application
+minikube service nginx
+```
+
+### Infrastructure as Code
+
+#### Ansible
+
+```bash
+# Install Ansible
+sudo apt install ansible  # Debian/Ubuntu
+sudo dnf install ansible  # Fedora/RHEL
+
+# Create inventory file
+nano inventory.ini
+```
+
+Example inventory file:
+```ini
+3
