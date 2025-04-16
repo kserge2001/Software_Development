@@ -450,9 +450,7 @@ This section builds on the basics, introducing you to the core skills needed for
 
 ### Filesystem Hierarchy Standard
 
-Linux follows the Filesystem Hierarchy Standard (FFS), which defines the directory structure and contents:
-
-![Linux Filesystem Hierarchy](images/linux/filesystem_hierarchy.png)
+Linux follows the Filesystem Hierarchy Standard (FHS), which defines the directory structure and contents:
 
 ```
 /          # Root directory - top of the filesystem hierarchy
@@ -521,15 +519,13 @@ sudo umount /mnt/usb
 
 ### File Types
 
-Linux processes can be in several states:
+Linux has several types of files:
 
-![Linux Process State Diagram](images/linux/process_states.png)
-
-- **R (Running)**: Currently running or ready to run
-- **S (Sleeping)**: Waiting for an event to complete
-- **D (Uninterruptible sleep)**: Waiting for I/O operation
-- **T (Stopped)**: Process has been suspended
-- **Z (Zombie)**: Terminated process that still has an entry in the process table
+- **Regular files**: Normal data files (text, images, executables)
+- **Directories**: Containers for other files
+- **Links**: 
+  - Symbolic links (similar to shortcuts in Windows)
+  - Hard links (multiple directory entries pointing to the same data)
 - **Device files**: Represent hardware devices
   - Block devices (storage devices like hard drives)
   - Character devices (serial devices, terminals)
@@ -647,15 +643,13 @@ The Tab key helps you complete commands and filenames:
 
 1. Start typing a command or filename
 2. Press Tab once to complete if there's only one match
-### Event Loop
+3. Press Tab twice to show all possibilities if there are multiple matches
 
-The event loop is the heart of Node.js asynchronous programming model:
+### Command Line Shortcuts
 
-![Linux System Architecture](images/linux/system_architecture.png)
-
-```
-   ┌───────────────────────────┐
-┌─>│           timers          │
+- **Ctrl+C**: Interrupt (kill) the current process
+- **Ctrl+Z**: Suspend the current process
+- **Ctrl+D**: End of input (log out from shell)
 - **Ctrl+L**: Clear the screen (same as `clear` command)
 - **Ctrl+A**: Move cursor to beginning of line
 - **Ctrl+E**: Move cursor to end of line
@@ -738,8 +732,6 @@ rm -i file.txt
 ```
 
 ### Finding Files
-
-![Linux Directory Structure](images/linux/directory_structure.png)
 
 ```bash
 # Find files by name in the current directory and subdirectories
@@ -896,8 +888,6 @@ cat /etc/group
 ### File Permissions
 
 Linux uses a permission system to control access to files and directories:
-
-![Linux File Permissions Visualization](images/linux/file_permissions.png)
 
 #### Permission Types
 
@@ -2087,8 +2077,6 @@ Example logrotate configuration:
 
 ### Storage Management
 
-![Linux Storage Management](images/linux/storage_management.png)
-
 #### Disk Partitioning
 
 ```bash
@@ -2199,8 +2187,6 @@ sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
 ## Networking Fundamentals
 
 Networking is a critical aspect of Linux administration. This section covers the essentials of Linux networking.
-
-![Linux Networking Stack](images/linux/networking_stack.png)
 
 ### Network Configuration
 
@@ -2695,8 +2681,6 @@ sudo fail2ban-client status sshd
 
 #### SELinux (Security-Enhanced Linux)
 
-![Linux Security Model](images/linux/security_model.png)
-
 Used primarily on Red Hat-based systems:
 
 ```bash
@@ -3149,8 +3133,6 @@ sudo ipvsadm-save -n > /etc/ipvsadm.rules
 
 ### Virtualization and Containers
 
-![Linux Virtualization Architecture](images/linux/virtualization_architecture.png)
-
 #### KVM Virtualization
 
 ```bash
@@ -3266,8 +3248,6 @@ minikube service nginx
 ```
 
 ### Infrastructure as Code
-
-![Infrastructure as Code Workflow](images/linux/infrastructure_as_code.png)
 
 #### Ansible
 
