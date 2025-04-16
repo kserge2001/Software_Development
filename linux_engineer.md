@@ -232,9 +232,34 @@ Linux follows several key philosophies:
 
 ### Linux in the Real World
 
-Linux powers:
-- **Over 90% of the world's top 500 supercomputers**
-- **Most web servers** (Apache, Nginx run primarily on Linux)
+Linux processes can be in several states:
+
+```
+Process State Diagram:
+
+  New Process
+      |
+      v
+    Ready --------+
+      |           |
+      v           |
+   Running -------+
+      |           |
+      +--------+  |
+      |        |  |
+      v        v  |
+  Waiting    Terminated
+      |
+      +-----> Ready
+
+R: Running or Ready
+S: Sleeping (Waiting)
+D: Uninterruptible Sleep
+T: Stopped
+Z: Zombie (Terminated but not removed)
+```
+
+- **R (Running)**: Currently running or ready to run
 - **Cloud infrastructure** (AWS, Google Cloud, Azure use Linux extensively)
 - **Android devices** (Android is built on the Linux kernel)
 - **Embedded systems** (routers, smart TVs, IoT devices)
@@ -451,6 +476,21 @@ This section builds on the basics, introducing you to the core skills needed for
 ### Filesystem Hierarchy Standard
 
 Linux follows the Filesystem Hierarchy Standard (FHS), which defines the directory structure and contents:
+
+```
+Linux Filesystem Hierarchy:
+
+           / (Root)
+           |
+  +--------+--------+----------+---------+---------+
+  |        |        |          |         |         |
+ bin      etc      home       lib       usr       var
+(binaries) (config) (user dirs) (libraries) (most programs) (variable data)
+           |                              |         |
+      +----+----+                   +-----+-----+   +-----+-----+
+      |         |                   |     |     |   |     |     |
+  network.d   passwd              bin   local  src  log   spool cache
+```
 
 ```
 /          # Root directory - top of the filesystem hierarchy
@@ -888,6 +928,23 @@ cat /etc/group
 ### File Permissions
 
 Linux uses a permission system to control access to files and directories:
+
+```
+File Permission Structure:
+
+  -rwxrwxrwx  1 user group  4096 Apr 15 14:30 filename
+  |└┬┘└┬┘└┬┘                               
+  | |  |  |                                
+  | |  |  └─ Others' permissions (r,w,x)   
+  | |  └──── Group permissions (r,w,x)     
+  | └─────── Owner permissions (r,w,x)     
+  └───────── File type (-, d, l, etc.)    
+
+  r = read (4)    w = write (2)    x = execute (1)
+  
+  Numeric values: 
+  7 = rwx (4+2+1)   5 = r-x (4+0+1)   0 = --- (0+0+0)
+```
 
 #### Permission Types
 
@@ -2187,6 +2244,30 @@ sudo mdadm --detail --scan | sudo tee -a /etc/mdadm/mdadm.conf
 ## Networking Fundamentals
 
 Networking is a critical aspect of Linux administration. This section covers the essentials of Linux networking.
+
+```
+Basic Network Architecture:
+
+    Internet
+       |
+    [Router] --- Firewall
+       |
+    [Switch]
+    /      \
+   /        \
+Server1    Server2
+
+TCP/IP Layers:
++----------------+
+| Application    | HTTP, SSH, DNS, etc.
++----------------+
+| Transport      | TCP/UDP, Ports
++----------------+
+| Internet       | IP Addressing, Routing
++----------------+
+| Link           | Ethernet, MAC Addresses
++----------------+
+```
 
 ### Network Configuration
 
