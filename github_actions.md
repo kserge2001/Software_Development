@@ -1397,4 +1397,381 @@ jobs:
     - name: Build
       run: npm run build
       
-    - name
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+        
+    - name: Deploy to S3
+      run: |
+        aws s3 sync dist/ s3://my-bucket-name/ --delete
+        
+    - name: Invalidate CloudFront cache
+      run: |
+        aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+```
+
+### Deploy to Azure Static Web Apps
+
+```yaml
+name: Deploy to Azure Static Web Apps
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+
+jobs:
+  build_and_deploy:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build And Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/" 
+          api_location: "api" 
+          output_location: "dist" 
+          
+  close_pull_request:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request
+    steps:
+      - name: Close Pull Request
+        id: closepullrequest
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          action: "close"
+```
+
+### Deploy to Heroku
+
+```yaml
+name: Deploy to Heroku
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        
+      - name: Deploy to Heroku
+        uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: "your-app-name"
+          heroku_email: "your-email@example.com"
+          procfile: "web: npm start"
+```
+
+### Deploy to Google Cloud Run
+
+```yaml
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      
+      - name: Build and push Docker image
+        run: |
+          gcloud builds submit --tag gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-app:${{ github.sha }}
+      
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy my-app \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-app:${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated
+```
+
+## Code Quality Checks
+
+GitHub Actions can help maintain code quality by automating checks and reviews.
+
+### Linting and Code Style
+
+```yaml
+name: Code Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Lint with ESLint
+        run: npm run lint
+        
+      - name: Check code formatting with Prettier
+        run: npm run format:check
+```
+
+### Static Analysis and Security Scanning
+
+```yaml
+name: Security Scanning
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      # SonarCloud scan
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      
+      # Check for dependency vulnerabilities
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+        
+      # CodeQL Analysis
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+```
+
+### Pull Request Reviews
+
+```yaml
+name: Pull Request Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Verify PR title follows conventional commits
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+      # Assign reviewers
+      - name: Auto-assign reviewers
+        uses: kentaro-m/auto-assign-action@v1.2.1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          
+      # Label the PR based on changed files
+      - name: Label PR
+        uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+## Scheduled Tasks
+
+GitHub Actions can run on a schedule to perform recurring tasks.
+
+### Cleaning Up Old Artifacts
+
+```yaml
+name: Clean Up Old Artifacts
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove old artifacts
+        uses: c-hive/gha-remove-artifacts@v1
+        with:
+          age: '1 week'
+          skip-tags: true
+          skip-recent: 5
+```
+
+### Database Backups
+
+```yaml
+name: Daily Database Backup
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run daily at 2 AM
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Backup PostgreSQL database
+        run: |
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          PGPASSWORD=${{ secrets.DB_PASSWORD }} pg_dump -h ${{ secrets.DB_HOST }} -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -F c -f backup_${TIMESTAMP}.dump
+          aws s3 cp backup_${TIMESTAMP}.dump s3://my-backup-bucket/backups/
+```
+
+### Dependency Updates
+
+```yaml
+name: Update Dependencies
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Run every Monday at 9 AM
+
+jobs:
+  update-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      
+      - name: Update dependencies
+        run: |
+          npm install -g npm-check-updates
+          ncu -u
+          npm install
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: 'chore: update dependencies'
+          branch: 'deps-update'
+          commit-message: 'chore: update dependencies'
+          body: 'Automated dependency updates'
+```
+
+## 🏆 Advanced Techniques
+
+## Matrix Builds
+
+Matrix builds allow you to test multiple configurations in a single job.
+
+### Complex Matrix Strategy
+
+```yaml
+name: Matrix Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false  # Don't cancel all jobs if one fails
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [14.x, 16.x, 18.x]
+        include:
+          # Add specific configurations
+          - os: ubuntu-latest
+            node-version: 18.x
+            experimental: true
+            test-command: "npm run test:e2e"
+          # Include additional variables for specific configurations
+          - os: windows-latest
+            node-version: 16.x
+            npm-cache-folder: "~\AppData\npm-cache"
+        exclude:
+          # Exclude specific configurations
+          - os: macos-latest
+            node-version: 14.x
+    
+    # Environment variables conditionally set based on matrix
+    env:
+      NPM_CACHE: ${{ matrix.npm-cache-folder || '~/.npm' }}
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set
