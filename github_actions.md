@@ -948,4 +948,453 @@ steps:
         node_modules
       key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
       restore-keys: |
-951
+        ${{ runner.os }}-node-
+
+  # Install dependencies
+  - name: Install dependencies
+    run: npm ci
+```
+
+### Artifact Management
+
+Artifacts let you share data between jobs and store data after a workflow completes:
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build project
+        run: npm run build
+      
+      # Upload build artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-files
+          path: |
+            dist
+            !dist/**/*.map
+          retention-days: 5
+  
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Download artifacts from the build job
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-files
+          path: dist
+          
+      - name: List downloaded files
+        run: ls -R dist
+```
+
+## 💼 Common Use Cases
+
+This section covers common GitHub Actions use cases with practical examples.
+
+## Continuous Integration
+
+Continuous Integration (CI) is the practice of automatically integrating code changes from multiple contributors into a shared repository, with automated tests to catch problems early.
+
+### Basic CI Workflow
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Lint code
+      run: npm run lint
+      
+    - name: Build
+      run: npm run build --if-present
+      
+    - name: Test
+      run: npm test
+```
+
+### CI for Multiple Language Versions
+
+```yaml
+name: CI - Multiple Node.js Versions
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x]
+        
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test
+```
+
+### CI with Multiple Operating Systems
+
+```yaml
+name: CI - Cross-platform
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [16.x]
+        
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build
+      run: npm run build
+```
+
+## Automated Testing
+
+GitHub Actions is ideal for running tests automatically on each code change.
+
+### Running Unit Tests
+
+```yaml
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run unit tests
+      run: npm test
+      
+    - name: Generate test coverage report
+      run: npm run test:coverage
+      
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/
+```
+
+### Running Integration Tests with Services
+
+```yaml
+name: Integration Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    # Set up service containers
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+            
+      redis:
+        image: redis:6
+        ports:
+          - 6379:6379
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run integration tests
+      run: npm run test:integration
+      env:
+        DATABASE_URL: postgres://testuser:testpassword@localhost:5432/testdb
+        REDIS_URL: redis://localhost:6379
+```
+
+### End-to-End Testing with Cypress
+
+```yaml
+name: E2E Tests
+
+on: [push, pull_request]
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      
+    - name: Cypress.io
+      uses: cypress-io/github-action@v4
+      with:
+        build: npm run build
+        start: npm start
+        wait-on: 'http://localhost:3000'
+        browser: chrome
+        headless: true
+      env:
+        NODE_ENV: test
+        
+    - name: Upload screenshots on failure
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: cypress-screenshots
+        path: cypress/screenshots
+```
+
+## Package Publishing
+
+GitHub Actions can automate publishing packages to registries like npm, PyPI, or GitHub Packages.
+
+### Publishing to npm
+
+```yaml
+name: Publish to npm
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build
+      run: npm run build
+      
+    - name: Test
+      run: npm test
+      
+    - name: Publish to npm
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+### Publishing to GitHub Packages
+
+```yaml
+name: Publish to GitHub Packages
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        registry-url: 'https://npm.pkg.github.com'
+        scope: '@your-username'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build
+      run: npm run build
+      
+    - name: Publish to GitHub Packages
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### Publishing a Docker Image
+
+```yaml
+name: Publish Docker Image
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+      
+    - name: Login to DockerHub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+        
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: username/app-name
+        tags: |
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          
+    - name: Build and push
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+```
+
+## Deployment Automation
+
+GitHub Actions can automate deployment to various hosting platforms.
+
+### Deploy to AWS S3
+
+```yaml
+name: Deploy to S3
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build
+      run: npm run build
+      
+    - name
